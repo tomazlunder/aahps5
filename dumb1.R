@@ -52,8 +52,15 @@ dumbSolver <- function(sites, paths, capacity){
   #Solver function 3
   returnToDepot <- function(myPath, load, capacity){
     found <<- 1
-    toRev <- myPath[1:length(myPath)-1]
-    myPath <- append(myPath, rev(toRev))
+    site <- myPath[length(myPath)]
+    
+    #toRev <- myPath[1:length(myPath)-1]
+    #myPath <- append(myPath, rev(toRev))
+    
+    #
+    sp <- shortestPathsUnderLoad(sites,paths,load)
+    pathToDepot <- extractPath(sp, site, 1)
+    myPath<- append(myPath, pathToDepot[2:length(pathToDepot)])
     myPath
   }
   

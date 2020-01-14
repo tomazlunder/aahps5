@@ -21,7 +21,7 @@ getBestPathToNeighbor <- function(paths,from,to,load){
   min(total$Distance)
 }
 
-shortestPathsUnderLoad <- function(sites,paths, load){
+shortestPathsUnderLoad <- function(sites,paths,load){
   x <- matrix(NA, nrow(sites), nrow(sites))
   diag(x) <- 0
   for(site in sites$ID){
