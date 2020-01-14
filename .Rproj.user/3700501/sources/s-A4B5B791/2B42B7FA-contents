@@ -1,0 +1,29 @@
+dumbSolver <- function(capacity, sites, paths){
+  types = c(1,2,3)
+  for(type in types){
+    solution = c(type)
+    
+    load <- 0
+    currentSite <- 1
+    served <- c(1)
+  }
+}
+
+nearestServableNeighbor <- function(site, sites, paths, load, capacity, type){
+  neighbors <- getNeighbors(site,paths, load)
+  if(type == 1){
+    select <- sites[which(sites$ID %in% neighbors,
+                          sites$Organic > 0,
+                          sites$Organic < (capacity-load)),]
+  }
+  else if(type == 2){
+    select <- sites[which(sites$ID %in% neighbors,
+                          sites$Plastic > 0,
+                          sites$Plastic < (capacity-load)),]
+  }
+  else if(type == 3){
+    select <- sites[which(sites$ID %in% neighbors,
+                          sites$Paper > 0,
+                          sites$Paper < (capacity-load)),]
+  }
+}

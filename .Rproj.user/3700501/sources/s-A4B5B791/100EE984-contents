@@ -1,0 +1,88 @@
+source("common.R")
+
+solutionCheck <- function(sites, paths, solution, maxLoad, printMid = FALSE){
+  totalCost <- 0
+  
+  lineIndex <-1
+  for(line in solution){
+    time <- 0.5 #Starting time due to unloading
+    cost <- 10 #Starting fixed cost
+    distance <- 0
+    load <- 0
+    runType <- line[1]
+    
+    last <- 1
+    for(site in line[3:length(line)]){
+      bestPath <- getBestPathToNeighbor(last, site, paths, load)
+      if(bestPath == Inf){
+        cat("ERROR: Path [",last,"->",site,"] from solution line[",lineIndex,"] not found!\n",
+        "(Could also be breaking the road capacity rule) Terminating... [FAIL]\n")
+        stop()
+      }
+      distance <- distance + bestPath
+      
+      #Organic
+      if(runType == 1 && (sites[sites$ID==site,4]+load) <= maxLoad){
+        load <- load + sites[sites$ID==site,4]
+        sites[sites$ID==site,4] <- 0 
+        time <- time + 0.2
+      }
+      #Plastic
+      else if(runType == 2 & sites[sites$ID==site,5]+load <= maxLoad){
+        load <- load + sites[sites$ID==site,5]
+        sites[sites$ID==site,5] <- 0 
+        time <- time + 0.2
+      }      
+      #Paper
+      else if(runType == 3 & sites[sites$ID==site,6]+load <= maxLoad){
+        load <- load + sites[sites$ID==site,6]
+        sites[sites$ID==site,6] <- 0 
+        time <- time + 0.2
+      }
+
+      last <- site  
+    }
+    #Time due to travel
+    time <- time + (distance/50)
+
+    #Fuel cost
+    fuelCost <- (distance*0.1)
+    
+    if(printMid) cat(" -Fuel:",fuelCost," for ",distance," km\n")
+    cost <- cost + fuelCost
+    
+    #Worker cost
+    if(time < 8){
+      workerCost <- time * 10 
+    } else {
+      workerCost <-  8 * 10
+      workerCost <- workerCost + (time - 8) * 20
+    }
+    
+    if(printMid) cat(" -Work:",workerCost," for ",time," hours\n")
+    cost <- cost + workerCost
+    
+    #Add total line cost to total cost
+    cat("Line ",lineIndex,"cost: ",cost,"\n")
+    totalCost <- totalCost + cost
+    
+    lineIndex <- lineIndex + 1
+  }
+  
+  cat("Total cost:",totalCost," [RESULT]\n")
+  
+  cat("All paths were valid, following one-way and load rules. [OK]\n")
+  
+  #Check if all garbage was picked up
+  uncollected <- sites[which(sites$Organic>0 |
+                               sites$Plastic>0 |
+                                sites$Paper>0),]
+  
+  if(nrow(uncollected) >0){
+    cat("Uncollected garbage detected! [FAIL]\n")
+    print(uncollected)
+  } else {
+    cat("All garbage was collected! [OK]\n")
+  }
+}
+

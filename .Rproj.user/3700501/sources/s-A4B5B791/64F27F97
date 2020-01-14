@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1578997524188.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "64F27F97",
+    "lastKnownWriteTime" : 1579008819,
+    "last_content_update" : 1579008819276,
+    "path" : "D:/Projects/R Studio/naloga5/common.R",
+    "project_path" : "common.R",
+    "properties" : {
+        "cursorPosition" : "23,22",
+        "scrollLine" : "17",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

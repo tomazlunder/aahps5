@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1579008173938.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "C0F24EC6",
+    "lastKnownWriteTime" : 1578996074,
+    "last_content_update" : 1578996074,
+    "path" : "D:/Projects/R Studio/naloga5/test/solutionCheckTest.R",
+    "project_path" : "test/solutionCheckTest.R",
+    "properties" : {
+        "cursorPosition" : "18,54",
+        "scrollLine" : "15",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
