@@ -13,10 +13,13 @@ solutionCheck <- function(sites, paths, solution, maxLoad, printMid = FALSE){
     cost <- 10 #Starting fixed cost
     distance <- 0
     load <- 0
-    runType <- line[1]
+    type <- line[1]
+
+    typeIndex <- getTypeIndex(colnames(sites),type)
     
     if(line[2] != 1){
       cat("Line ", line, " does not start at depot! [ERROR]")
+      notStartingAtDepot <- append(notStartingAtDepot,lineIndex)
       error <- 1
     }
     
@@ -31,22 +34,13 @@ solutionCheck <- function(sites, paths, solution, maxLoad, printMid = FALSE){
       }
       distance <- distance + bestPath
       
-      #Organic
-      if(runType == 1 && (sites[sites$ID==site,4]+load) <= maxLoad){
-        load <- load + sites[sites$ID==site,4]
-        sites[sites$ID==site,4] <- 0 
-        time <- time + 0.2
-      }
-      #Plastic
-      else if(runType == 2 & sites[sites$ID==site,5]+load <= maxLoad){
-        load <- load + sites[sites$ID==site,5]
-        sites[sites$ID==site,5] <- 0 
-        time <- time + 0.2
-      }      
-      #Paper
-      else if(runType == 3 & sites[sites$ID==site,6]+load <= maxLoad){
-        load <- load + sites[sites$ID==site,6]
-        sites[sites$ID==site,6] <- 0 
+
+      #IF pick up
+      if((sites[sites$ID==site,typeIndex]+load) <= maxLoad &
+          sites[sites$ID==site,typeIndex] > 0){
+        
+        load <- load + sites[sites$ID==site,typeIndex]
+        sites[sites$ID==site,typeIndex] <- 0 
         time <- time + 0.2
       }
 
@@ -118,5 +112,8 @@ solutionCheck <- function(sites, paths, solution, maxLoad, printMid = FALSE){
     cat("All garbage was collected! [OK]\n")
   }
   
+  if(error == 1) return(Inf)
+  
+  return(totalCost)
 }
 

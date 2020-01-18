@@ -1,9 +1,10 @@
-dumbSolver <- function(sites, paths, capacity){
+dumbSolver2 <- function(sites, paths, capacity){
   mySites <- sites
-
+  
   #Solver function 1
   findFirstUnserved <- function(myPath, load, capacity, typeIndex){
     site <- myPath[length(myPath)]
+    searched<<-append(searched, site)
     
     sn <- servableNeighbors(mySites, paths, site, load, capacity, typeIndex)
     if(nrow(sn) > 0){
@@ -17,7 +18,9 @@ dumbSolver <- function(sites, paths, capacity){
     } 
     else{
       asn <- servedNeighbors(mySites,paths,site,load,typeIndex)
-      for(e in asn){
+      for(e in asn$ID){
+        if(e %in% searched | e %in% exhausted) next
+        
         myPath <- append(myPath, e)
         temp <- findFirstUnserved(myPath,load, capacity, typeIndex)
         if(found == 1){
@@ -25,6 +28,7 @@ dumbSolver <- function(sites, paths, capacity){
         }
         else{
           myPath <- myPath[1:length(myPath)-1]
+          exhausted <<- e
         }
       }
       return -1 #Not found (something went wrong)
@@ -54,10 +58,6 @@ dumbSolver <- function(sites, paths, capacity){
     found <<- 1
     site <- myPath[length(myPath)]
     
-    #toRev <- myPath[1:length(myPath)-1]
-    #myPath <- append(myPath, rev(toRev))
-    
-    #
     sp <- shortestPathsUnderLoad(sites,paths,load)
     pathToDepot <- extractPath(sp, site, 1)
     myPath<- append(myPath, pathToDepot[2:length(pathToDepot)])
@@ -66,6 +66,8 @@ dumbSolver <- function(sites, paths, capacity){
   
   
   ### SOLVER
+  start_time <- Sys.time()
+  
   solution = list()
   
   types = c(1,2,3)
@@ -74,19 +76,27 @@ dumbSolver <- function(sites, paths, capacity){
     if(type == 1) typeName <- "Organic"
     else if(type == 2) typeName <- "Plastic"
     else if(type == 3) typeName <- "Paper"
-    typeColIndex = grep(typeName, colnames(sites))
+    typeIndex = grep(typeName, colnames(sites))
     
-    while(leftToServe(mySites, typeColIndex) != 0){
+    it <- 1
+    #While left to serve > 0
+    while(nrow(mySites[mySites[,typeIndex] > 0,]) != 0){
       myPath <- c(1)
       found <- 0
-      route <- findFirstUnserved(myPath, 0, capacity, typeColIndex)
+      
+      searched <- c()
+      exhausted <- c()
+      
+      route <- findFirstUnserved(myPath, 0, capacity, typeIndex)
+      #cat("[",type,",",it,"] ",route,"\n")
       solution[[i]] <- c(type,route)
       i <- i + 1
+      it <- it + 1
     }
   }
+  end_time <- Sys.time()
+  print(end_time - start_time)
   
-  #print(solution)
-  #print(mySites)
   solution
 }
 
@@ -96,13 +106,13 @@ servableNeighbors <- function(sites, paths, site, load, capacity, typeIndex){
   select <- sites[which(sites$ID %in% neighbors &
                           sites[,typeIndex] > 0 &
                           sites[,typeIndex] < (capacity-load)),]
-
+  
   select
 }
 
 servedNeighbors <- function(sites, paths, site,load,typeIndex){
   neighbors <- getNeighbors(paths,site,load)
-
+  
   select <- sites[which(sites$ID %in% neighbors &
                           sites[,typeIndex] == 0),]
   
@@ -127,8 +137,4 @@ nearestOf <- function(paths, site, options, load){
   }
   
   shortest
-}
-
-leftToServe <- function(sites, typeIndex){
-  nrow(sites[sites[,typeIndex] > 0,])
 }

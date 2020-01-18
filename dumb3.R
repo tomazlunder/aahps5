@@ -1,6 +1,8 @@
-dumbSolver <- function(sites, paths, capacity, types = c(1,2,3)){
-  mySites <- sites
+source("common.R")
 
+dumbSolver3 <- function(sites, paths, capacity, types = c(1,2,3)){
+  mySites <- sites
+  
   #Solver function 1
   findFirstUnserved <- function(myPath, load, capacity, typeIndex){
     site <- myPath[length(myPath)]
@@ -94,17 +96,15 @@ dumbSolver <- function(sites, paths, capacity, types = c(1,2,3)){
   ### SOLVER
   start_time <- Sys.time()
   
-  solution = list()
-  midSolution = list()
-
   i <- 1
+  megaSolution <- list()
   for(type in types){
-    if(type == 1) typeName <- "Organic"
-    else if(type == 2) typeName <- "Plastic"
-    else if(type == 3) typeName <- "Paper"
-    typeIndex = grep(typeName, colnames(sites))
+    typeIndex = getTypeIndex(colnames(sites),type)
     
     it <- 1
+    solution = list()
+    midSolution = list()
+    
     #While left to serve > 0
     while(nrow(mySites[mySites[,typeIndex] > 0,]) != 0){
       myPath <- c(1)
@@ -114,17 +114,21 @@ dumbSolver <- function(sites, paths, capacity, types = c(1,2,3)){
       searched <- c()
       route <- findFirstUnserved(myPath, 0, capacity, typeIndex)
       #cat("[",type,",",it,"] ",route,"\n")
-      solution[[i]] <- c(type,route)
-      midSolution[[i]] <- myServed
+      solution[[it]] <- c(type,route)
+      midSolution[[it]] <- myServed
       
-      i <- i + 1
       it <- it + 1
+      i <- i + 1
     }
+    
+    megaSolution[[type]] <- list(solution,midSolution)
+    
+    
   }
   end_time <- Sys.time()
   print(end_time - start_time)
   
-  list(solution,midSolution)
+  megaSolution
 }
 
 #Helper functions
@@ -133,13 +137,13 @@ servableNeighbors <- function(sites, paths, site, load, capacity, typeIndex){
   select <- sites[which(sites$ID %in% neighbors &
                           sites[,typeIndex] > 0 &
                           sites[,typeIndex] < (capacity-load)),]
-
+  
   select
 }
 
 servedNeighbors <- function(sites, paths, site,load,typeIndex){
   neighbors <- getNeighbors(paths,site,load)
-
+  
   select <- sites[which(sites$ID %in% neighbors &
                           sites[,typeIndex] == 0),]
   
