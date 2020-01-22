@@ -1,7 +1,6 @@
 library('e1071') #sp all
 library('igraph') #sp from to
 
-
 getTypeIndex <- function(colnames,type){
   if(type == 1) typeName <- "Organic"
   else if(type == 2) typeName <- "Plastic"
@@ -53,11 +52,16 @@ shortestToFromUnderLoad <- function(paths,from,to,load){
   tw <- tw[c("ID2","ID1","Distance","OneWay","Capacity")]
   colnames(tw) = c("ID1","ID2","Distance","OneWay","Capacity")
   ipaths <- rbind(ipaths, tw)
-  ipaths <- ipaths[ipaths$Capacity >= capacity,]
+  ipaths <- ipaths[ipaths$Capacity >= load,]
   
   
   ipaths <- ipaths[c("ID1","ID2","Distance")]
   colnames(ipaths) <- c("ID1","ID2","weight")
+  
+  if(nrow(ipaths) == 0){
+    a<-3
+    #Wtf
+  }
   
   ipaths <- aggregate(weight ~ ID1 + ID2, ipaths, FUN = min)
   
@@ -67,11 +71,13 @@ shortestToFromUnderLoad <- function(paths,from,to,load){
   aa <- shortest_paths(g, from = as.character(from), to= as.character(to), mode = c("out"), weights = ipaths$weight,
                        predecessors = FALSE, inbound.edges = FALSE)
   
-  cc <- as.character(aa[[1]])
-  bb <- strsplit(cc,"`")
-  bb <- as.numeric(bb[[1]][c(FALSE,TRUE)])
+  #cc <- as.character(aa[[1]])
+  #bb <- strsplit(cc,"`")
+  lol <- names(unlist(aa[[1]]))
+  lol <- as.numeric(lol)
+  #bb <- as.numeric(bb[[1]][c(FALSE,TRUE)])
   
-  return(bb)
+  return(lol)
 }
 
 getNeighbors <- function(paths, site, load){
@@ -119,4 +125,58 @@ megaToNormalSolution <- function(megaSolution){
     pathSolutions <- append(pathSolutions, e[[1]])
   }
   pathSolutions
+}
+
+normalToMegaSolution <- function(sites, paths, capacity, solution){
+  totalCost <- 0
+
+  solutionType = list() 
+  midSolution = list()
+  solutionLoad = list()
+  
+  megaSolution = list()
+  
+  lastType <- 1
+  
+  
+  it <- 1
+  for(line in solution){
+      load <- 0
+      myServiced <- c()
+
+      type <- line[1]
+      
+      if(type != lastType){
+        megaSolution[[lastType]] <- list(solutionType, midSolution, solutionLoad)
+        solutionType = list() 
+        midSolution = list()
+        solutionLoad = list()
+
+        lastType <- type
+        it <- 1
+      }
+
+      
+      typeIndex <- getTypeIndex(colnames(sites),type)
+      
+      for(site in line[3:length(line)]){
+        #IF pick up
+        if((sites[sites$ID==site,typeIndex]+load) <= capacity &
+           sites[sites$ID==site,typeIndex] > 0){
+          
+          load <- load + sites[sites$ID==site,typeIndex]
+          sites[sites$ID==site,typeIndex] <- 0 
+          myServiced <- c(myServiced, site)
+        }
+      }
+      
+      solutionType[[it]] <- line
+      midSolution[[it]] <- myServiced
+      solutionLoad[[it]] <- load
+      
+      it <- it + 1
+  }
+  megaSolution[[type]] <- list(solutionType, midSolution, solutionLoad)
+  
+  return(megaSolution)
 }

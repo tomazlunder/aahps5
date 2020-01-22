@@ -1,31 +1,57 @@
-removeAndReinsert2 <- function(sites, paths, capacity, bothSolutions){
-  pathSolutions <- bothSolutions[[1]]
-  nodeSolutions <- bothSolutions[[2]]
+#Moves a random node from randomly picked Line1 to randomly picked Line2
+
+#If the new capacity of Line2 would be over the capacity limit, another two lines are picked
+#If no valid transfer (capacity wise) is found in maxIterations, return NULL
+
+#After a valid swap pair is found, Line1 gets repaired or removed if no nodes are left in it
+#All permutations of line2 and the new node are computed, to insert the node into the best place
+
+#The new solution is returned
+randomShift10 <- function(sites, paths, capacity, megaSolution){
+  pathSolutions <- megaSolution[[1]]
+  nodeSolutions <- megaSolution[[2]]
+  totalLoads <- megaSolution[[3]]
   
   #Pick random lines 1 and 2
-  randomLinesInds <- sample(1:length(pathSolutions),2)
-
-  randomLine1index <- randomLinesInds[[1]]
-  randomLine2index <- randomLinesInds[[2]]
-
-  type <- pathSolutions[[randomLine1index]][1]
+  #This is cheap and reapeated until a valid candidates are picked or max iterations is reached
+  i <- 1
+  maxIter <- 500
+  while(1){
+    randomLinesInds <- sample(1:length(pathSolutions),2)
   
-  ns1 <- nodeSolutions[[randomLine1index]]
-  ns2 <- nodeSolutions[[randomLine2index]]
+    randomLine1index <- randomLinesInds[[1]]
+    randomLine2index <- randomLinesInds[[2]]
+    
   
-  #Pick a random node from random line 1
-  if(length(ns1) == 1){
-    randomNode <- ns1[1]
+    type <- pathSolutions[[randomLine1index]][1]
+    typeIndex <- getTypeIndex(colnames(sites),type)
+    
+    ns1 <- nodeSolutions[[randomLine1index]]
+    ns2 <- nodeSolutions[[randomLine2index]]
+    
+    #Pick a random node from random line 1
+    if(length(ns1) == 1){
+      randomNode <- ns1[1]
+    }
+    else{
+      randomNode <- sample(ns1[1:(length(ns1))],1)
+    }
+    
+    if(i == maxIter) return(NULL)
+    
+    if((totalLoads[[randomLine2index]] + sites[randomNode,typeIndex]) < capacity){
+      break;
+    }
+    
+    i <- i + 1
   }
-  else{
-    randomNode <- sample(ns1[1:(length(ns1))],1)
-  }
-  
+
   #Insert into random line 2
-  ns2new <- insertNodeIntoBestPlace(sites,paths,ns2,randomNode,capacity,type)
+  ns2new <- insertNodeIntoBestPlace(sites,paths,capacity,ns2,randomNode,type)
   
   pathSolutions[[randomLine2index]] <- constructFullSolution(sites,paths,ns2new,type)
   nodeSolutions[[randomLine2index]] <- ns2new
+  totalLoads[[randomLine2index]] <- totalLoads[[randomLine2index]] + sites[randomNode,typeIndex]
   
   #Rebuild or remove line 1 if necesary 
   if(length(ns1) == 1){
@@ -39,21 +65,29 @@ removeAndReinsert2 <- function(sites, paths, capacity, bothSolutions){
     #Repair the path without the lost node
     pathSolutions[[randomLine1index]] <- constructFullSolution(sites,paths,ns1new, type)
     nodeSolutions[[randomLine1index]] <- list(ns1new)
+    totalLoads[[randomLine1index]] <- totalLoads[[randomLine1index]] - sites[randomNode,type]
   }
   
-  list(pathSolutions,nodeSolutions)
+  list(pathSolutions,nodeSolutions, totalLoads)
 }
 
-insertNodeIntoBestPlace <- function(sites,paths,nodes,node, capacity, type){
+
+insertNodeIntoBestPlace <- function(sites,paths, capacity, nodes,node, type){
   bestPlace <- 1
   bestCost <- Inf
   best <- NULL
-  for(place in 1:length(nodes)+1){
-    nodesNew <- c(nodes[1:place],node)
-    
-    nodesNew <- c(nodes[0:(place-1)],node)
-    if(place <= length(nodes)) nodesNew <- c(nodesNew, nodes[place:length(nodes)])
-    
+  for(place in 0:(length(nodes))){
+    if(place == 0){
+      nodesNew <- c(node, nodes)
+    }
+    else{
+      nodesNew <- c(nodes[1:place],node)
+      
+      if(place < length(nodes)){
+        nodesNew <- c(nodesNew, nodes[(place+1):(length(nodes))])
+      }
+    }
+
     repaired <- constructFullSolution(sites,paths,nodesNew,type)
     cost <- lineCost(sites,paths,capacity,repaired,nodesNew,type)
     
@@ -64,4 +98,83 @@ insertNodeIntoBestPlace <- function(sites,paths,nodes,node, capacity, type){
     
   }
   best
+}
+
+
+randomSwap11 <- function(sites, paths, capacity, megaSolution){
+  pathSolutions <- megaSolution[[1]]
+  nodeSolutions <- megaSolution[[2]]
+  totalLoads <- megaSolution[[3]]
+  
+  #Pick random lines 1 and 2
+  #This is cheap and reapeated until a valid candidates are picked or max iterations is reached
+  i <- 1
+  maxIter <- 500
+  while(1){
+    if(i == maxIter) return(NULL)
+    
+    randomLinesInds <- sample(1:length(pathSolutions),2)
+    
+    randomLine1index <- randomLinesInds[[1]]
+    randomLine2index <- randomLinesInds[[2]]
+    
+    
+    type <- pathSolutions[[randomLine1index]][1]
+    typeIndex <- getTypeIndex(colnames(sites),type)
+    
+    ns1 <- nodeSolutions[[randomLine1index]]
+    ns2 <- nodeSolutions[[randomLine2index]]
+    
+    #If both lines service just one node, no change would happen, retry
+    if(length(ns1) == 1 & length(ns2) == 1){
+      i <- i + 1
+      next;
+    }
+    
+    #Pick a random node from random line 1
+    if(length(ns1) == 1){
+      randomNode1 <- ns1[1]
+    }
+    else{
+      randomNode1 <- sample(ns1[1:(length(ns1))],1)
+    }
+    
+    #Pick a random node from line 2
+    if(length(ns2) == 1){
+      randomNode2 <- ns2[1]
+    }
+    else{
+      randomNode2 <- sample(ns2[1:(length(ns2))],1)
+    }
+    
+    newLoad1 <- (totalLoads[[randomLine1index]] - sites[randomNode1,typeIndex]) + sites[randomNode2,typeIndex]
+    newLoad2 <- (totalLoads[[randomLine2index]] - sites[randomNode2,typeIndex]) + sites[randomNode1,typeIndex]
+    
+    #Found something we can swap
+    if(newLoad1 < capacity && newLoad2 < capacity){
+      break;
+    }
+    
+    i <- i + 1
+  }
+  
+  #Remove selected nodes from lines
+  index1 <- match(randomNode1, ns1)
+  index2 <- match(randomNode2, ns2)
+  ns1new <- ns1[-index1]
+  ns2new <- ns2[-index2]
+  
+  ns1new <- insertNodeIntoBestPlace(sites,paths,capacity,ns1new,randomNode2,type)
+  ns2new <- insertNodeIntoBestPlace(sites,paths,capacity,ns2new,randomNode1,type)
+  
+  pathSolutions[[randomLine1index]] <- constructFullSolution(sites,paths,ns1new,type)
+  pathSolutions[[randomLine2index]] <- constructFullSolution(sites,paths,ns2new,type)
+  
+  nodeSolutions[[randomLine2index]] <- list(ns1new)
+  nodeSolutions[[randomLine2index]] <- list(ns2new)
+  
+  totalLoads[[randomLine1index]] <- newLoad1
+  totalLoads[[randomLine2index]] <- newLoad2
+  
+  list(pathSolutions,nodeSolutions, totalLoads)
 }

@@ -3,7 +3,7 @@
 # 2: Site dataframe
 # 3: Path dataframe
 
-readFile <- function(file){
+readProblem <- function(file){
   #Read num sites and truck capacity
   con <- file(file,"r")
   first_line <- readLines(con,n=1)
