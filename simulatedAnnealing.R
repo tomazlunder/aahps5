@@ -1,5 +1,8 @@
 simulatedAnnealing <- function(sites,paths,capacity, megaSolution, printIT = FALSE){
   maxIter <- 50
+  tempInitial <- 1000
+  tempFinal <- 1
+  alpha <- 0.9
   
   invisible(capture.output( orgCost <- solutionCheck(sites,paths,capacity,megaToNormalSolution(megaSolution)) ))
   
@@ -17,10 +20,18 @@ simulatedAnnealing <- function(sites,paths,capacity, megaSolution, printIT = FAL
     pathSolutions <- typeSolutions[[1]] #aka the initial solution
     
     #Cost of initial solution for type
-    invisible(capture.output( bestCost <- solutionCheckType(sites,paths,pathSolutions, capacity, type) ))
-    best <- megaSolution[[type]]
+    invisible(capture.output( startCost <- solutionCheckType(sites,paths,pathSolutions, capacity, type) ))
     
-    cat("************** [TYPE",type,"] START: Initial cost: ", bestCost, " **************\n")
+    #New in simulatedAnnealing
+    scurrent <- typeSolutions
+    sbest <- typeSolutions
+    temperature <- tempInitial #TODO::INITIAL
+    temperatureFinal <- 1 ##TODO::INIT THIS
+    
+    cost_current <- startCost
+    cost_best <- startCost
+    
+    cat("************** [TYPE",type,"] START: Initial cost: ", cost_best, " **************\n")
     
     #For stats
     invalidAttempt <- 0
@@ -33,8 +44,8 @@ simulatedAnnealing <- function(sites,paths,capacity, megaSolution, printIT = FAL
     totalIt <- 0
     improvements <- 0
     
-    while(1){
-      if(printIT)cat(i," ")
+    while(temperature > temperatureFinal){
+      if(printIT)cat(temperature," ")
       
       if(i >= maxIter){
         if(printIT) cat("\n")
@@ -103,36 +114,54 @@ simulatedAnnealing <- function(sites,paths,capacity, megaSolution, printIT = FAL
       indexMinNew <- match(costNew,operationCost)
       solNew <- operationSolution[[indexMinNew]]
       
-      #If the cost is better, replace best known solution
-      if(costNew < bestCost){
-        costDecrease <- bestCost - costNew
+      
+      costDiff <- costNew - cost_current
+      #If the cost of new solution is better than the cost of current solution, update current
+      if(costDiff <= 0){
         if(printIT) cat("\n")
-        cat("Better solution found ", costDecrease," decrease in cost (",bestCost,"->",costNew,"). OP(",operation[[indexMinNew]],"). Iter(",i,"/",maxIter,")\n")
-        bestCost <- costNew
-        best <- solNew
+        cat("Current solution updated[-]", costDiff," decrease in cost (",cost_current,"->",costNew,"). OP(",operation[[indexMinNew]],")\n")
+        cost_current <- costNew
+        scurrent <- solNew
+        
+        #If the new current solution is better than the best known solution, update best
+        bestCostDiff <- cost_current - cost_best
+        if(bestCostDiff < 0){
+          if(printIT) cat("\n")
+          cat("Best solution updated[!]", bestCostDiff," decrease in cost (",cost_best,"->",cost_current,"). OP(",operation[[indexMinNew]],")\n")
+          cost_best <- cost_current
+          sbest <- scurrent
+        }
         
         #Do all operations again
         operationDo <- c(1,1,1)
-        #Reset iteration counter to 1
-        totalIt <- totalIt + i
-        improvements <- improvements + 1
-        i <- 1
-        next
       } else{
         if(is.infinite(costNew))
         {invalidAttempt <- invalidAttempt + 1}
         else
-        {worseAttempt <- worseAttempt + 1}
+        {
+          worseAttempt <- worseAttempt + 1
+          #Pick the worse solution with probability
+          if(acceptWorseSolution(costDiff,temperature)){
+            if(printIT) cat("\n")
+            cat("Current solution updated[+]", costDiff," increase in cost (",cost_current,"->",costNew,"). OP(",operation[[indexMinNew]],")\n")
+            cost_current <- costNew
+            scurrent <- solNew
+          }
+        }
       }
       
-      
-      i <- i + 1
+      temperature = temperature * alpha
     }
     
-    megaSolution[[type]] <- best
-    totalCost <- totalCost + bestCost
+    megaSolution[[type]] <- sbest
+    totalCost <- totalCost + cost_best
   }
   
   cat("Toal cost after execution: ", totalCost, " Change of: ",(totalCost-orgCost),"\n")
   megaSolution
+}
+
+acceptWorseSolution <- function(difference,temperature){
+  boltzman <- exp(-difference/temperature)
+  return(boltzman > runif(1, min=0, max=1))
 }
