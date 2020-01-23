@@ -5,7 +5,7 @@ getTypeIndex <- function(colnames,type){
   if(type == 1) typeName <- "Organic"
   else if(type == 2) typeName <- "Plastic"
   else if(type == 3) typeName <- "Paper"
-  typeIndex = grep(typeName, colnames(sites))
+  typeIndex = grep(typeName, colnames)
 }
 
 getBestPathToNeighbor <- function(paths,from,to,load){

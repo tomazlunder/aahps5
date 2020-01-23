@@ -30,7 +30,10 @@ for(filename in files){
   #solutionCheck(sites,paths,capacity,megaToNormalSolution(newSolution))
   
   #Write to file
-  writeSolution(newSolution,paste("output/",filename,sep=""))
+  path <- paste("output/",filename,sep="")
+  writeSolution(newSolution,path)
   
   res <- append(res,newSolution)
 }
+
+res

@@ -12,7 +12,7 @@ source("mutators.R")
 source("readWriteSolution.R")
 
 #Reading file
-file <- "input/Problem2.txt"
+file <- "input/Problem9.txt"
 
 capSitesPaths <- readProblem(file)
 capacity <- capSitesPaths[[1]]
