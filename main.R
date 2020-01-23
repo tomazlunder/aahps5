@@ -10,7 +10,7 @@ source("localSearch.R")
 source("mutators.R")
 
 #Reading file
-file <- "input/Problem1.txt"
+file <- "input/Problem2.txt"
 
 capSitesPaths <- readProblem(file)
 capacity <- capSitesPaths[[1]]
@@ -19,5 +19,5 @@ paths <- capSitesPaths[[3]]
 
 initialSolution <- initialSolver(sites,paths,capacity)
 solutionCheck(sites,paths,megaToNormalSolution(initialSolution),capacity)
-newSolution <- localSearch(sites,paths,capacity,initialSolution)
+newSolution <- localSearch(sites,paths,capacity,initialSolution, printIT = TRUE)
 solutionCheck(sites,paths,megaToNormalSolution(newSolution),capacity)
