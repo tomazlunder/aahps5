@@ -9,13 +9,15 @@ source("initialSolver.R")
 source("localSearch.R")
 source("mutators.R")
 
+source("readWriteSolution.R")
+
 files <- list("Problem1.txt", "Problem2.txt", "Problem3.txt", "Problem4.txt", "Problem5.txt",
               "Problem6.txt", "Problem7.txt", "Problem8.txt", "Problem9.txt", "Problem10.txt")
 
 res <- list()
 
-for(file in files){
-  path <- paste("input/",file,sep="")
+for(filename in files){
+  path <- paste("input/",filename,sep="")
   
   capSitesPaths <- readProblem(path)
   capacity <- capSitesPaths[[1]]
@@ -23,8 +25,12 @@ for(file in files){
   paths <- capSitesPaths[[3]]
   
   initialSolution <- initialSolver(sites,paths,capacity)
-  solutionCheck(sites,paths,megaToNormalSolution(initialSolution),capacity)
+  solutionCheck(sites,paths,capacity,megaToNormalSolution(initialSolution))
   newSolution <- localSearch(sites,paths,capacity,initialSolution)
+  #solutionCheck(sites,paths,capacity,megaToNormalSolution(newSolution))
+  
+  #Write to file
+  writeSolution(newSolution,paste("output/",filename,sep=""))
   
   res <- append(res,newSolution)
 }

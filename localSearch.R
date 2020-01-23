@@ -1,7 +1,7 @@
 localSearch <- function(sites,paths,capacity, megaSolution, printIT = FALSE){
   maxIter <- 50
   
-  invisible(capture.output( orgCost <- solutionCheck(sites,paths,megaToNormalSolution(megaSolution),capacity) ))
+  invisible(capture.output( orgCost <- solutionCheck(sites,paths,capacity,megaToNormalSolution(megaSolution)) ))
   
   cat("Original solution cost:", orgCost,"\n")
   
@@ -46,7 +46,7 @@ localSearch <- function(sites,paths,capacity, megaSolution, printIT = FALSE){
       
       #Random shift(1,0)
       if(operationDo[[1]] == 1){
-        sol1 <- randomShift10NEW(sites,paths,capacity,typeSolutions)
+        sol1 <- randomShift10(sites,paths,capacity,typeSolutions)
         operationSolution[[1]] <- sol1
         if(is.null(sol1)){
           if(printIT) cat("(Sh10_stop)")

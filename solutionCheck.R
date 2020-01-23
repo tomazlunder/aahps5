@@ -1,6 +1,6 @@
 source("common.R")
 
-solutionCheck <- function(sites, paths, solution, maxLoad, printMid = FALSE){
+solutionCheck <- function(sites, paths, capacity, solution, printMid = FALSE){
   totalCost <- 0
   lineIndex <-1
   
@@ -36,7 +36,7 @@ solutionCheck <- function(sites, paths, solution, maxLoad, printMid = FALSE){
       
 
       #IF pick up
-      if((sites[sites$ID==site,typeIndex]+load) <= maxLoad &
+      if((sites[sites$ID==site,typeIndex]+load) <= capacity &
           sites[sites$ID==site,typeIndex] > 0){
         
         load <- load + sites[sites$ID==site,typeIndex]
