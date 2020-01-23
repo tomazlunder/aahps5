@@ -8,12 +8,10 @@ source("lineCost.R")
 source("initialSolver.R")
 source("localSearch.R")
 source("simulatedAnnealing.R")
-source("mutators.R")
-
 source("readWriteSolution.R")
 
 #Reading file
-file <- "input/Problem2.txt"
+file <- "input/Problem3.txt"
 
 capSitesPaths <- readProblem(file)
 capacity <- capSitesPaths[[1]]
@@ -22,7 +20,7 @@ paths <- capSitesPaths[[3]]
 
 initialSolution <- initialSolver(sites,paths,capacity)
 solutionCheck(sites,paths,capacity,megaToNormalSolution(initialSolution))
-#newSolution <- localSearch(sites,paths,capacity,initialSolution, printIT = TRUE)
+newSolution <- localSearch(sites,paths,capacity,initialSolution, printIT = TRUE)
 newSolution <- simulatedAnnealing(sites,paths,capacity,initialSolution, printIT = TRUE)
 solutionCheck(sites,paths,capacity,megaToNormalSolution(newSolution))
 

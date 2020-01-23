@@ -1,3 +1,8 @@
+source("common.R")
+source("moves/randomShift10.R")
+source("moves/randomShift20.R")
+source("moves/randomSwap11.R")
+
 localSearch <- function(sites,paths,capacity, megaSolution, printIT = FALSE){
   maxIter <- 50
   
@@ -27,7 +32,7 @@ localSearch <- function(sites,paths,capacity, megaSolution, printIT = FALSE){
     worseAttempt <- 0
     randomTimedOut <- 0
     
-    operationDo <- c(1,1,0)
+    operationDo <- c(0,0,1)
     operationCost[1] <- Inf
     operationCost[2] <- Inf
     operationCost[3] <- Inf
@@ -66,7 +71,7 @@ localSearch <- function(sites,paths,capacity, megaSolution, printIT = FALSE){
       
       #Random swap(1,1)
       if(operationDo[[2]] == 1){
-        sol2 <- randomSwap11NEW(sites,paths,capacity,typeSolutions)
+        sol2 <- randomSwap11(sites,paths,capacity,typeSolutions)
         operationSolution[[2]] <- sol2
         
         if(is.null(sol2)){
@@ -80,10 +85,9 @@ localSearch <- function(sites,paths,capacity, megaSolution, printIT = FALSE){
       }
       
       #Random shift(2,0)
-      
       if(operationDo[[3]] == 1){
         sol3 <- randomShift20(sites,paths,capacity,typeSolutions)
-        operationSolution[[3]] <- sol2
+        operationSolution[[3]] <- sol3
        
        if(is.null(sol3)){
           if(printIT) cat("(Sh20_stop)")
@@ -119,7 +123,7 @@ localSearch <- function(sites,paths,capacity, megaSolution, printIT = FALSE){
         best <- solNew
         
         #Do all operations again
-        operationDo <- c(1,1,0)
+        operationDo <- c(0,0,1)
         #Reset iteration counter to 1
         totalIt <- totalIt + i
         improvements <- improvements + 1

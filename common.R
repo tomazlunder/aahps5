@@ -180,3 +180,31 @@ normalToMegaSolution <- function(sites, paths, capacity, solution){
   
   return(megaSolution)
 }
+
+insertNodeIntoBestPlace <- function(sites,paths, capacity, nodes,node, type){
+  bestPlace <- 1
+  bestCost <- Inf
+  best <- NULL
+  for(place in 0:(length(nodes))){
+    if(place == 0){
+      nodesNew <- c(node, nodes)
+    }
+    else{
+      nodesNew <- c(nodes[1:place],node)
+      
+      if(place < length(nodes)){
+        nodesNew <- c(nodesNew, nodes[(place+1):(length(nodes))])
+      }
+    }
+    
+    repaired <- constructFullSolution(sites,paths,nodesNew,type)
+    cost <- lineCost(sites,paths,capacity,repaired,nodesNew,type)
+    
+    if(cost < bestCost){
+      bestCost <- cost
+      best <- nodesNew
+    }
+    
+  }
+  best
+}

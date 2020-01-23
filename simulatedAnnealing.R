@@ -88,7 +88,7 @@ simulatedAnnealing <- function(sites,paths,capacity, megaSolution, printIT = FAL
       #Random shift(2,0)
       if(operationDo[[3]] == 1){
         sol3 <- randomShift20(sites,paths,capacity,typeSolutions)
-        operationSolution[[3]] <- sol2
+        operationSolution[[3]] <- sol3
         
         if(is.null(sol3)){
           if(printIT) cat("(Sh20_stop)")
